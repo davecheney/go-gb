@@ -79,6 +79,11 @@ func (cfg Config) GCFlags() (gcflags string, set bool) {
 	return
 }
 
+func (cfg Config) Pkgdir() (pkgdir string, set bool) {
+	pkgdir, set = cfg["pkgdir"]
+	return
+}
+
 func (cfg Config) Write(dir string) (err error) {
 	path := filepath.Join(dir, "gb.cfg")
 	var fout *os.File
@@ -118,6 +123,7 @@ var knownKeys = map[string]bool{
 	"ignore":    true,
 	"ignoreall": true,
 	"gcflags":   true,
+	"pkgdir":    true,
 }
 
 func ReadConfig(dir string) (cfg Config) {

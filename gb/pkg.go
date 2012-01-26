@@ -584,7 +584,16 @@ func (this *Package) GetTarget() (err error) {
 					}
 					return false
 				}
-				_ = tryFixPrefix(path.Join("src", "pkg")) || tryFixPrefix("pkg") || tryFixPrefix("src")
+				fixed := tryFixPrefix(path.Join("src", "pkg")) || tryFixPrefix("pkg") || tryFixPrefix("src")
+
+				for t := this; t != nil; t = t.Parent {
+					if pkgdir, set := t.Cfg.Pkgdir(); set {
+						if !fixed {
+							tryFixPrefix(pkgdir)
+						}
+						break
+					}
+				}
 			}
 		} else {
 			this.Base = this.Target
