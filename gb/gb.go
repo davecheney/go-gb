@@ -141,7 +141,7 @@ var OSFiltersMust = map[string]string{
 	"wingui": "windows",
 }
 
-func ScanDirectory(base, dir string, inTestData string) (err2 error) {
+func ScanDirectory(base, dir string, inTestData string, parent *Package) (err2 error) {
 	_, basedir := filepath.Split(dir)
 	if DisallowedSourceDirectories[basedir] || (basedir != "." && strings.HasPrefix(basedir, ".")) {
 		return
@@ -179,7 +179,7 @@ func ScanDirectory(base, dir string, inTestData string) (err2 error) {
 	var pkg *Package
 
 	if ignore, ok := cfg.Ignore(); !(ignore && ok) {
-		pkg, err = NewPackage(base, dir, inTestData, cfg)
+		pkg, err = NewPackage(base, dir, inTestData, parent, cfg)
 		if err == nil {
 			key := "\"" + pkg.Target + "\""
 			if pkg.IsCmd {
@@ -204,9 +204,8 @@ func ScanDirectory(base, dir string, inTestData string) (err2 error) {
 
 	subdirs := GetSubDirs(dir)
 	for _, subdir := range subdirs {
-		ScanDirectory(filepath.Join(base, subdir), filepath.Join(dir, subdir), inTestData)
+		ScanDirectory(filepath.Join(base, subdir), filepath.Join(dir, subdir), inTestData, pkg)
 	}
-
 	return
 }
 
@@ -458,17 +457,16 @@ func RunGB() (err error) {
 
 	args := os.Args[1:len(os.Args)]
 
-	err = ScanDirectory(".", ".", "")
-	if err != nil {
+	if err = ScanDirectory(".", ".", "", nil); err != nil {
 		return
 	}
 	if BuildGOROOT {
 		fmt.Printf("Scanning %s...", filepath.Join("GOROOT", "src"))
-		ScanDirectory("", filepath.Join(GOROOT, "src"), "")
+		ScanDirectory("", filepath.Join(GOROOT, "src"), "", nil)
 		fmt.Printf("done\n")
 		for _, gp := range GOPATHS {
 			fmt.Printf("Scanning %s...", filepath.Join(gp, "src"))
-			ScanDirectory("", filepath.Join(gp, "src"), "")
+			ScanDirectory("", filepath.Join(gp, "src"), "", nil)
 			fmt.Printf("done\n")
 		}
 	}

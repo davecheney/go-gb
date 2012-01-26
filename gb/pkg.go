@@ -55,6 +55,8 @@ type Package struct {
 	ProtoSrcs  []string // for protobufs
 	Sources    []string // the list of all .go, .c, .s source in the target
 
+	Parent *Package // this package's direct ancestor, or nil if it is the workspace
+
 	ProtoGoSrcs []string // the .go files that correspond to .proto files
 	DeadSources []string // all .go, .c, .s files that will not be included in the build
 
@@ -90,7 +92,7 @@ type Package struct {
 	block chan bool
 }
 
-func NewPackage(base, dir string, inTestData string, cfg Config) (this *Package, err error) {
+func NewPackage(base, dir string, inTestData string, parent *Package, cfg Config) (this *Package, err error) {
 	finfo, err := os.Stat(dir)
 	if err != nil || !finfo.IsDir() {
 		err = errors.New("not a directory")
@@ -102,6 +104,7 @@ func NewPackage(base, dir string, inTestData string, cfg Config) (this *Package,
 	this.Cfg = cfg
 
 	this.block = make(chan bool, 1)
+	this.Parent = parent
 	this.Dir = path.Clean(dir)
 	this.InTestData = inTestData
 	this.PkgSrc = make(map[string][]string)
